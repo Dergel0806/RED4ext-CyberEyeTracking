@@ -192,11 +192,11 @@ bool CyberEyeTracking::Workers::BaseInkWidgetController::CheckScriptObject(RED4e
 {
     try
     {
-        return scriptObject->unk18 >= 0 && scriptObject->unk18 < 4000000000000000000 &&
-               scriptObject->unk20 >= 0 && scriptObject->unk28 >= 0 &&
-               scriptObject->valueHolder != nullptr && scriptObject->ref.instance != nullptr &&
-               scriptObject->ref.GetUseCount() > 0 && (uint64_t)scriptObject->ref.instance != 0x00000000ffffffff &&
-               scriptObject->classType != nullptr && _inkWidgetControllerCls->name == scriptObject->classType->name;
+        return scriptObject->unk18 >= 0 && scriptObject->unk18 < 4000000000000000000 && scriptObject->unk20 >= 0 &&
+               scriptObject->unk28 >= 0 && scriptObject->valueHolder != nullptr &&
+               scriptObject->ref.instance != nullptr && scriptObject->ref.GetUseCount() > 0 &&
+               (uint64_t)scriptObject->ref.instance != 0x00000000ffffffff;
+               //&& scriptObject->classType != nullptr && _inkWidgetControllerCls->name == scriptObject->classType->name;
     }
     catch (...)
     {
