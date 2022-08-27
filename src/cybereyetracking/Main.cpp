@@ -75,7 +75,7 @@ void InitializeLogger(std::filesystem::path aRoot)
 }
 
 
-RED4EXT_C_EXPORT bool RED4EXT_CALL Load(RED4ext::PluginHandle aHandle, const RED4ext::IRED4ext* aInterface)
+RED4EXT_C_EXPORT bool RED4EXT_CALL Load(RED4ext::PluginHandle aHandle, const RED4ext::Sdk* aInterface)
 {
     char buff[MAX_PATH];
     GetModuleFileNameA(NULL, buff, MAX_PATH);
