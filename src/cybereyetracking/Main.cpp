@@ -145,7 +145,7 @@ void StartResetPitch(float x, float y)
     prevY = y;
 }
 
-RED4EXT_C_EXPORT void RED4EXT_CALL Update()
+bool Update(RED4ext::CGameApplication* aApp)
 {    
     static auto timeStart = std::chrono::high_resolution_clock::now();
     static auto loadCheck = std::chrono::high_resolution_clock::now();
@@ -165,7 +165,7 @@ RED4EXT_C_EXPORT void RED4EXT_CALL Update()
             spdlog::info("Eye tracker found!");
 
         trackerFound = true;
-        return;
+        return false;
     }
     float* pos = _eyeTracker.GetPos();
    
@@ -202,7 +202,7 @@ RED4EXT_C_EXPORT void RED4EXT_CALL Update()
     }
     
     if (!initialized || (now - loadCheck) < loadCheckSec)
-        return;
+        return false;
 
     RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
 
@@ -212,12 +212,12 @@ RED4EXT_C_EXPORT void RED4EXT_CALL Update()
         loadCheck = std::chrono::high_resolution_clock::now();
         _dialogWorker.Erase();
         hudManagerInitialized = false;
-        return;
+        return false;
     }
 
     auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
     if (!gamePaused.has_value() || gamePaused.value())
-        return;
+        return false;
 
     float x = pos[0];
     float y = pos[1];
@@ -239,7 +239,7 @@ RED4EXT_C_EXPORT void RED4EXT_CALL Update()
     RED4ext::ExecuteFunction(gameInstance, f, &container, args);
 
     if (!container || !container.instance)
-        return;
+        return false;
 
     args.clear();
     RED4ext::Handle<RED4ext::IScriptable> takeOverControlSystem;
@@ -250,14 +250,14 @@ RED4EXT_C_EXPORT void RED4EXT_CALL Update()
     RED4ext::ExecuteFunction(container, f, &takeOverControlSystem, args);
     auto isDeviceControlled = takeOverControlSystem->ExecuteFunction<bool>("IsDeviceControlled");
     if (isDeviceControlled.value())
-        return;
+        return false;
 
     // ================ WHEEL SELECT ==============
     if (!_disableWheelSelect && _radialWheelWorker.ObjectsCount() > 0)
     {
         float angle = CyberEyeTracking::Math::GetAngle(x, y);
         if (_radialWheelWorker.SetAngle(angle))
-            return;
+            return false;
     }
 
     // ================ CLEAN UI ==============
@@ -334,7 +334,7 @@ RED4EXT_C_EXPORT void RED4EXT_CALL Update()
 
     // ================ DIALOGUE SELECT ==============
     if (!_disableDialogueSelect && _dialogWorker.SelectAtPos(y))
-        return;
+        return false;
 
     // ================ CAMERA PITCH ==============
     
@@ -349,7 +349,7 @@ RED4EXT_C_EXPORT void RED4EXT_CALL Update()
             _hudManagerWorker.IsHacking())
         {
             _cameraPitchWorker.SetPitch(0, 0);
-            return;
+            return false;
         }
 
         bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
@@ -433,8 +433,8 @@ RED4EXT_C_EXPORT void RED4EXT_CALL Query(RED4ext::PluginInfo* aInfo)
      */
 
     aInfo->name = L"CyberEyeTracking";
-    aInfo->author = L"Jay-D";
-    aInfo->version = RED4EXT_SEMVER(1, 0, 0);
+    aInfo->author = L"Jay-D & Dergel";
+    aInfo->version = RED4EXT_SEMVER(1, 1, 0);
     aInfo->runtime = RED4EXT_RUNTIME_LATEST;
     aInfo->sdk = RED4EXT_SDK_LATEST;
 }
@@ -446,6 +446,22 @@ RED4EXT_C_EXPORT uint32_t RED4EXT_CALL Supports()
      */
     return RED4EXT_API_VERSION_LATEST;
 }
+
+
+#include <RED4ext/RED4ext.hpp>
+
+bool BaseInit_OnEnter(RED4ext::CGameApplication* aApp)
+{
+    return true;
+}
+
+
+bool BaseInit_OnExit(RED4ext::CGameApplication* aApp)
+{
+    return true;
+}
+
+
 
 
 RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::EMainReason aReason,
@@ -460,6 +476,11 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::
     {
         Load();
         PostLoad();
+        RED4ext::GameState initState;
+        initState.OnEnter = &BaseInit_OnEnter;
+        initState.OnUpdate = &Update;
+        initState.OnExit = &BaseInit_OnExit;
+        aSdk->gameStates->Add(aHandle, RED4ext::EGameStateType::BaseInitialization, &initState);
         break;
     }
     case RED4ext::EMainReason::Unload:
