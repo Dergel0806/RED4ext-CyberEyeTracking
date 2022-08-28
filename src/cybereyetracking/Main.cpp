@@ -75,7 +75,7 @@ void InitializeLogger(std::filesystem::path aRoot)
 }
 
 
-RED4EXT_C_EXPORT bool RED4EXT_CALL Load(RED4ext::PluginHandle aHandle, const RED4ext::Sdk* aInterface)
+bool RED4EXT_CALL Load()
 {
     char buff[MAX_PATH];
     GetModuleFileNameA(NULL, buff, MAX_PATH);
@@ -95,7 +95,7 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Load(RED4ext::PluginHandle aHandle, const RED
     return true;
 }
 
-RED4EXT_C_EXPORT void RED4EXT_CALL PostLoad()
+void RED4EXT_CALL PostLoad()
 {
     TCHAR iniVal[4];
     std::string iniPathStr = rootPath + "cybereyetracking.ini";
@@ -119,7 +119,7 @@ RED4EXT_C_EXPORT void RED4EXT_CALL PostLoad()
 }
 
 
-RED4EXT_C_EXPORT void RED4EXT_CALL Unload()
+void RED4EXT_CALL Unload()
 {
     _eyeTracker.Finalize();
 }
@@ -445,4 +445,29 @@ RED4EXT_C_EXPORT uint32_t RED4EXT_CALL Supports()
      * This functions returns only what API version is support by your plugins.
      */
     return RED4EXT_API_VERSION_LATEST;
+}
+
+
+RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::EMainReason aReason,
+                                        const RED4ext::Sdk* aSdk)
+{
+    RED4EXT_UNUSED_PARAMETER(aHandle);
+    RED4EXT_UNUSED_PARAMETER(aSdk);
+
+    switch (aReason)
+    {
+    case RED4ext::EMainReason::Load:
+    {
+        Load();
+        PostLoad();
+        break;
+    }
+    case RED4ext::EMainReason::Unload:
+    {
+        Unload();
+        break;
+    }
+    }
+
+    return true;
 }
