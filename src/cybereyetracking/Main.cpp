@@ -157,7 +157,7 @@ bool Update(RED4ext::CGameApplication* aApp)
     auto static gameInstance = RED4ext::CGameEngine::Get()->framework->gameInstance;
     using namespace std::chrono_literals;
     auto rtti = RED4ext::CRTTISystem::Get();
-
+    spdlog::info("Update called");
     if (!trackerFound)
     {
         bool initRes = _eyeTracker.Init();
@@ -168,9 +168,11 @@ bool Update(RED4ext::CGameApplication* aApp)
         return false;
     }
     float* pos = _eyeTracker.GetPos();
-   
+    spdlog::info(pos[0]);
+    spdlog::info(pos[1]);
     if (!initialized && (now - timeStart) >= 5s)
     {
+        spdlog::info("Stuff initialized!");
         if (!_disableCleanUI)
         {
             _healthBarWorker.Init();
@@ -202,13 +204,15 @@ bool Update(RED4ext::CGameApplication* aApp)
     }
     
     if (!initialized || (now - loadCheck) < loadCheckSec)
+        spdlog::info("!initialized || (now - loadCheck) < loadCheckSec");
         return false;
-
+    spdlog::info("Before Here!");
     RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
-
+    spdlog::info("Here!");
     auto instance = sysHandlers.Lock();
     if (!instance || _dialogWorker.ObjectsCount() == 0)
     {
+        spdlog::info("!instance || _dialogWorker.ObjectsCount() == 0");
         loadCheck = std::chrono::high_resolution_clock::now();
         _dialogWorker.Erase();
         hudManagerInitialized = false;
@@ -217,6 +221,7 @@ bool Update(RED4ext::CGameApplication* aApp)
 
     auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
     if (!gamePaused.has_value() || gamePaused.value())
+        spdlog::info("!gamePaused.has_value() || gamePaused.value()");
         return false;
 
     float x = pos[0];
@@ -229,6 +234,8 @@ bool Update(RED4ext::CGameApplication* aApp)
         y = 1;
     else if (y < 0)
         y = 0;
+    spdlog::info(x);
+    spdlog::info(y);
 
     // Dont work if some camera is controlled
     RED4ext::Handle<RED4ext::IScriptable> container;
@@ -263,14 +270,17 @@ bool Update(RED4ext::CGameApplication* aApp)
     // ================ CLEAN UI ==============
     if (!_disableCleanUI)
     {
+        spdlog::info("Clean UI");
         if (x >= 0 && x <= 0.25 && //(0-480)
             y >= 0 && y <= 0.165)  // (0-110)
         {
+            spdlog::info("Health Bar showing");
             _healthBarWorker.ShowWidget();
             StartResetPitch(x, y);
         }
         else
         {
+            spdlog::info("Health Bar hidden");
             _healthBarWorker.HideWidget();
         }
 
