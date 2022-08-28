@@ -448,8 +448,6 @@ RED4EXT_C_EXPORT uint32_t RED4EXT_CALL Supports()
 }
 
 
-#include <RED4ext/RED4ext.hpp>
-
 bool BaseInit_OnEnter(RED4ext::CGameApplication* aApp)
 {
     return true;
@@ -460,8 +458,6 @@ bool BaseInit_OnExit(RED4ext::CGameApplication* aApp)
 {
     return true;
 }
-
-
 
 
 RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::EMainReason aReason,
@@ -480,7 +476,7 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::
         initState.OnEnter = &BaseInit_OnEnter;
         initState.OnUpdate = &Update;
         initState.OnExit = &BaseInit_OnExit;
-        aSdk->gameStates->Add(aHandle, RED4ext::EGameStateType::BaseInitialization, &initState);
+        aSdk->gameStates->Add(aHandle, RED4ext::EGameStateType::Running, &initState);
         break;
     }
     case RED4ext::EMainReason::Unload:
