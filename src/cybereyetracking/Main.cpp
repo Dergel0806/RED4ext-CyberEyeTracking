@@ -146,7 +146,7 @@ void StartResetPitch(float x, float y)
 }
 
 bool Update(RED4ext::CGameApplication* aApp)
-{    
+{
     static auto timeStart = std::chrono::high_resolution_clock::now();
     static auto loadCheck = std::chrono::high_resolution_clock::now();
     static bool initialized = false;
@@ -158,6 +158,14 @@ bool Update(RED4ext::CGameApplication* aApp)
     using namespace std::chrono_literals;
     auto rtti = RED4ext::CRTTISystem::Get();
     spdlog::info("Update called");
+
+    if (!initialized && (now - loadCheck) < loadCheckSec * 3)
+    {
+       spdlog::info("!initialized && (now - loadCheck) < loadCheckSec");
+       return false;
+    }
+
+
     if (!trackerFound)
     {
         bool initRes = _eyeTracker.Init();
@@ -170,7 +178,7 @@ bool Update(RED4ext::CGameApplication* aApp)
     float* pos = _eyeTracker.GetPos();
     spdlog::info(pos[0]);
     spdlog::info(pos[1]);
-    if (!initialized && (now - timeStart) >= 5s)
+    if (!initialized)
     {
         spdlog::info("Stuff initialized!");
         if (!_disableCleanUI)
@@ -194,36 +202,38 @@ bool Update(RED4ext::CGameApplication* aApp)
             _cameraPitchWorker.Init(gameInstance);
             _lootingWorker.Init();
         }
-        
+
         _dialogWorker.Init();
 
         inkMenuScenarioCls = rtti->GetClass("inkMenuScenario");
         scriptGameInstanceCls = rtti->GetClass("ScriptGameInstance");
-        
+
         initialized = true;
     }
-    
-    if (!initialized || (now - loadCheck) < loadCheckSec)
-        spdlog::info("!initialized || (now - loadCheck) < loadCheckSec");
-        return false;
-    spdlog::info("Before Here!");
+
+
     RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
-    spdlog::info("Here!");
+
     auto instance = sysHandlers.Lock();
-    if (!instance || _dialogWorker.ObjectsCount() == 0)
-    {
-        spdlog::info("!instance || _dialogWorker.ObjectsCount() == 0");
-        loadCheck = std::chrono::high_resolution_clock::now();
-        _dialogWorker.Erase();
-        hudManagerInitialized = false;
-        return false;
-    }
+    //spdlog::info(instance);
+    //spdlog::info(_dialogWorker.ObjectsCount());
+    //if (!instance || _dialogWorker.ObjectsCount() == 0)
+    //{
+    //    spdlog::info("!instance || _dialogWorker.ObjectsCount() == 0");
+    //    loadCheck = std::chrono::high_resolution_clock::now();
+    //    _dialogWorker.Erase();
+    //    hudManagerInitialized = false;
+    //    return false;
+    //}
 
     auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
     if (!gamePaused.has_value() || gamePaused.value())
+    {
         spdlog::info("!gamePaused.has_value() || gamePaused.value()");
         return false;
+    }
 
+    spdlog::info("Got down here!");
     float x = pos[0];
     float y = pos[1];
     if (x > 1)
@@ -240,25 +250,31 @@ bool Update(RED4ext::CGameApplication* aApp)
     // Dont work if some camera is controlled
     RED4ext::Handle<RED4ext::IScriptable> container;
     std::vector<RED4ext::CStackType> args;
+    spdlog::info("args.emplace_back(nullptr, &gameInstance);");
     args.emplace_back(nullptr, &gameInstance);
 
     auto f = rtti->GetClass("ScriptGameInstance")->GetFunction("GetScriptableSystemsContainer");
     RED4ext::ExecuteFunction(gameInstance, f, &container, args);
-
+    spdlog::info("GetScriptableSystemsContainer");
     if (!container || !container.instance)
+    {
+        spdlog::info("!container || !container.instance");
         return false;
+    }
 
     args.clear();
     RED4ext::Handle<RED4ext::IScriptable> takeOverControlSystem;
     auto name = RED4ext::CName::CName("TakeOverControlSystem");
+    spdlog::info("TakeOverControlSystem");
     args.emplace_back(nullptr, &name);
     f = rtti->GetClass("gameScriptableSystemsContainer")->GetFunction("Get");
 
     RED4ext::ExecuteFunction(container, f, &takeOverControlSystem, args);
     auto isDeviceControlled = takeOverControlSystem->ExecuteFunction<bool>("IsDeviceControlled");
+    spdlog::info(isDeviceControlled.value());
     if (isDeviceControlled.value())
         return false;
-
+    spdlog::info("Got to selection!");
     // ================ WHEEL SELECT ==============
     if (!_disableWheelSelect && _radialWheelWorker.ObjectsCount() > 0)
     {
