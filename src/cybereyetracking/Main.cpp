@@ -375,9 +375,12 @@ bool Update(RED4ext::CGameApplication* aApp)
             _hudManagerWorker.Init();
             hudManagerInitialized = true;
         }
-        if (_lootingWorker.GetBoolPropertyValue("isShown") || _hudManagerWorker.IsScanning() ||
+        if (/*_lootingWorker.GetBoolPropertyValue("isShown") || */_hudManagerWorker.IsScanning() ||
             _hudManagerWorker.IsHacking())
         {
+            spdlog::info(_lootingWorker.GetBoolPropertyValue("isShown"));
+            spdlog::info(_hudManagerWorker.IsScanning());
+            spdlog::info(_hudManagerWorker.IsHacking());
             _cameraPitchWorker.SetPitch(0, 0);
             spdlog::info("Line 382");
             return false;
