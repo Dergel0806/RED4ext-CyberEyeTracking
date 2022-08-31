@@ -15,7 +15,7 @@
 #include <EyeTracker.hpp>
 #include "Utils.hpp"
 
-#define CAMERA_PITCH_LOOK_START 0.5 // 0.338 Screen border where we start pitching camera
+#define CAMERA_PITCH_LOOK_START 0.3 // 0.338 Screen border where we start pitching camera
 
 #define CAMERA_PITCH_PARABOLA_A 1
 #define CAMERA_PITCH_PARABOLA_B -1
@@ -322,29 +322,26 @@ bool Update(RED4ext::CGameApplication* aApp)
             _wantedBarWorker.HideWidget();
         }
 
-        _questTrackerWidgetWorker.HideWidget();
-        _hotkeysWidgetWorker.HideWidget();
-
-        //if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
-        //    && y >= 0.35185185 && y <= 0.5)             // (380-540)
-        //{
-        //    _questTrackerWidgetWorker.ShowWidget();
-        //}
-        //else
-        //{
-        //    _questTrackerWidgetWorker.HideWidget();
-        //}
-        //
-        //if (x >= 0.03125 && x <= 0.161458333 // (60-310)
-        //    && y >= 0.8703703 && y <= 1)     // (940-1080)
-        //{
-        //    _hotkeysWidgetWorker.ShowWidget();
-        //    StartResetPitch(x, y);
-        //}
-        //else
-        //{
-        //    _hotkeysWidgetWorker.HideWidget();
-        //}
+        if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
+            && y >= 0.35185185 && y <= 0.5)             // (380-540)
+        {
+            _questTrackerWidgetWorker.ShowWidget();
+        }
+        else
+        {
+            _questTrackerWidgetWorker.HideWidget();
+        }
+        
+        if (x >= 0.03125 && x <= 0.161458333 // (60-310)
+            && y >= 0.8703703 && y <= 1)     // (940-1080)
+        {
+            _hotkeysWidgetWorker.ShowWidget();
+            StartResetPitch(x, y);
+        }
+        else
+        {
+            _hotkeysWidgetWorker.HideWidget();
+        }
 
         if (x <= 0.4 || x >= 0.6 || y <= 0.4 || y >= 0.6)
         {
@@ -394,7 +391,7 @@ bool Update(RED4ext::CGameApplication* aApp)
         float pitchX = 0;
         float pitchY = 0;
 
-        if (resetPitch)
+        /*if (resetPitch)
         {
             if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START && y > CAMERA_PITCH_RESET_START &&
                 y < 1 - CAMERA_PITCH_RESET_START)
@@ -406,7 +403,7 @@ bool Update(RED4ext::CGameApplication* aApp)
                 x = prevX;
                 y = prevY;
             }
-        }
+        }*/
         pitchX = GetCamPitch(x, pitchRight);
         pitchY = GetCamPitch(y, pitchDown);
         spdlog::info(pitchX);
