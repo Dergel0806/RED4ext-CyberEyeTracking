@@ -15,13 +15,13 @@
 #include <EyeTracker.hpp>
 #include "Utils.hpp"
 
-#define CAMERA_PITCH_LOOK_START 0.3 // 0.338 Screen border where we start pitching camera
+#define CAMERA_PITCH_LOOK_START 0.25 // 0.338 Screen border where we start pitching camera
 
-#define CAMERA_PITCH_PARABOLA_A 0.5 // 1
+#define CAMERA_PITCH_PARABOLA_A 0.3 // 1
 #define CAMERA_PITCH_PARABOLA_B -1
-#define CAMERA_PITCH_PARABOLA_C 0.25
+#define CAMERA_PITCH_PARABOLA_C 0.5 // 0.25
 
-#define CAMERA_PITCH_RESET_START 0.25
+#define CAMERA_PITCH_RESET_START 0.25 // 0.25
 
 #define RED4EXT_EXPORT extern "C" __declspec(dllexport)
 
@@ -305,9 +305,9 @@ bool Update(RED4ext::CGameApplication* aApp)
             return false;
         }
 
-        bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
+        //bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
         bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
-        bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
+        //bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
         bool pitchDown = y >= 1 - CAMERA_PITCH_LOOK_START;
 
         float pitchX = 0;
