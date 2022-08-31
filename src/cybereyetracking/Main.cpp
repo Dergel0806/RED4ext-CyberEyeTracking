@@ -211,27 +211,26 @@ bool Update(RED4ext::CGameApplication* aApp)
         initialized = true;
     }
 
+    //RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
 
-    RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
+    //auto instance = sysHandlers.Lock();
+    ////spdlog::info(instance);
+    ////spdlog::info(_dialogWorker.ObjectsCount());
+    ////if (!instance || _dialogWorker.ObjectsCount() == 0)
+    ////{
+    ////    spdlog::info("!instance || _dialogWorker.ObjectsCount() == 0");
+    ////    loadCheck = std::chrono::high_resolution_clock::now();
+    ////    _dialogWorker.Erase();
+    ////    hudManagerInitialized = false;
+    ////    return false;
+    ////}
 
-    auto instance = sysHandlers.Lock();
-    //spdlog::info(instance);
-    //spdlog::info(_dialogWorker.ObjectsCount());
-    //if (!instance || _dialogWorker.ObjectsCount() == 0)
+    //auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
+    //if (!gamePaused.has_value() || gamePaused.value())
     //{
-    //    spdlog::info("!instance || _dialogWorker.ObjectsCount() == 0");
-    //    loadCheck = std::chrono::high_resolution_clock::now();
-    //    _dialogWorker.Erase();
-    //    hudManagerInitialized = false;
+    //    spdlog::info("!gamePaused.has_value() || gamePaused.value()");
     //    return false;
     //}
-
-    auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
-    if (!gamePaused.has_value() || gamePaused.value())
-    {
-        spdlog::info("!gamePaused.has_value() || gamePaused.value()");
-        return false;
-    }
 
     spdlog::info("Got down here!");
     float x = pos[0];
@@ -247,33 +246,33 @@ bool Update(RED4ext::CGameApplication* aApp)
     spdlog::info(x);
     spdlog::info(y);
 
-    // Dont work if some camera is controlled
-    RED4ext::Handle<RED4ext::IScriptable> container;
-    std::vector<RED4ext::CStackType> args;
-    spdlog::info("args.emplace_back(nullptr, &gameInstance);");
-    args.emplace_back(nullptr, &gameInstance);
+    //// Dont work if some camera is controlled
+    //RED4ext::Handle<RED4ext::IScriptable> container;
+    //std::vector<RED4ext::CStackType> args;
+    //spdlog::info("args.emplace_back(nullptr, &gameInstance);");
+    //args.emplace_back(nullptr, &gameInstance);
 
-    auto f = rtti->GetClass("ScriptGameInstance")->GetFunction("GetScriptableSystemsContainer");
-    RED4ext::ExecuteFunction(gameInstance, f, &container, args);
-    spdlog::info("GetScriptableSystemsContainer");
-    if (!container || !container.instance)
-    {
-        spdlog::info("!container || !container.instance");
-        return false;
-    }
+    //auto f = rtti->GetClass("ScriptGameInstance")->GetFunction("GetScriptableSystemsContainer");
+    //RED4ext::ExecuteFunction(gameInstance, f, &container, args);
+    //spdlog::info("GetScriptableSystemsContainer");
+    //if (!container || !container.instance)
+    //{
+    //    spdlog::info("!container || !container.instance");
+    //    return false;
+    //}
 
-    args.clear();
-    RED4ext::Handle<RED4ext::IScriptable> takeOverControlSystem;
-    auto name = RED4ext::CName::CName("TakeOverControlSystem");
-    spdlog::info("TakeOverControlSystem");
-    args.emplace_back(nullptr, &name);
-    f = rtti->GetClass("gameScriptableSystemsContainer")->GetFunction("Get");
+    //args.clear();
+    //RED4ext::Handle<RED4ext::IScriptable> takeOverControlSystem;
+    //auto name = RED4ext::CName::CName("TakeOverControlSystem");
+    //spdlog::info("TakeOverControlSystem");
+    //args.emplace_back(nullptr, &name);
+    //f = rtti->GetClass("gameScriptableSystemsContainer")->GetFunction("Get");
 
-    RED4ext::ExecuteFunction(container, f, &takeOverControlSystem, args);
-    auto isDeviceControlled = takeOverControlSystem->ExecuteFunction<bool>("IsDeviceControlled");
-    spdlog::info(isDeviceControlled.value());
-    if (isDeviceControlled.value())
-        return false;
+    //RED4ext::ExecuteFunction(container, f, &takeOverControlSystem, args);
+    //auto isDeviceControlled = takeOverControlSystem->ExecuteFunction<bool>("IsDeviceControlled");
+    //spdlog::info(isDeviceControlled.value());
+    //if (isDeviceControlled.value())
+    //    return false;
     spdlog::info("Got to selection!");
     // ================ WHEEL SELECT ==============
     if (!_disableWheelSelect && _radialWheelWorker.ObjectsCount() > 0)
@@ -290,14 +289,14 @@ bool Update(RED4ext::CGameApplication* aApp)
         if (x >= 0 && x <= 0.25 && //(0-480)
             y >= 0 && y <= 0.165)  // (0-110)
         {
-            spdlog::info("Health Bar showing");
             _healthBarWorker.ShowWidget();
             StartResetPitch(x, y);
+            spdlog::info("Health Bar showing");
         }
         else
         {
-            spdlog::info("Health Bar hidden");
             _healthBarWorker.HideWidget();
+            spdlog::info("Health Bar hidden");
         }
 
         if (x >= 0.848958333 && x <= 0.971875 // (1630-1866)
@@ -305,10 +304,12 @@ bool Update(RED4ext::CGameApplication* aApp)
         {
             _minimapWorker.ShowWidget();
             StartResetPitch(x, y);
+            spdlog::info("Map showing");
         }
         else
         {
             _minimapWorker.HideWidget();
+            spdlog::info("Map hidden");
         }
 
         if (x >= 0.8208333 && x <= 0.848958333 // (1575-1630)
@@ -321,26 +322,29 @@ bool Update(RED4ext::CGameApplication* aApp)
             _wantedBarWorker.HideWidget();
         }
 
-        if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
-            && y >= 0.35185185 && y <= 0.5)             // (380-540)
-        {
-            _questTrackerWidgetWorker.ShowWidget();
-        }
-        else
-        {
-            _questTrackerWidgetWorker.HideWidget();
-        }
+        _questTrackerWidgetWorker.HideWidget();
+        _hotkeysWidgetWorker.HideWidget();
 
-        if (x >= 0.03125 && x <= 0.161458333 // (60-310)
-            && y >= 0.8703703 && y <= 1)     // (940-1080)
-        {
-            _hotkeysWidgetWorker.ShowWidget();
-            StartResetPitch(x, y);
-        }
-        else
-        {
-            _hotkeysWidgetWorker.HideWidget();
-        }
+        //if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
+        //    && y >= 0.35185185 && y <= 0.5)             // (380-540)
+        //{
+        //    _questTrackerWidgetWorker.ShowWidget();
+        //}
+        //else
+        //{
+        //    _questTrackerWidgetWorker.HideWidget();
+        //}
+        //
+        //if (x >= 0.03125 && x <= 0.161458333 // (60-310)
+        //    && y >= 0.8703703 && y <= 1)     // (940-1080)
+        //{
+        //    _hotkeysWidgetWorker.ShowWidget();
+        //    StartResetPitch(x, y);
+        //}
+        //else
+        //{
+        //    _hotkeysWidgetWorker.HideWidget();
+        //}
 
         if (x <= 0.4 || x >= 0.6 || y <= 0.4 || y >= 0.6)
         {
@@ -375,6 +379,7 @@ bool Update(RED4ext::CGameApplication* aApp)
             _hudManagerWorker.IsHacking())
         {
             _cameraPitchWorker.SetPitch(0, 0);
+            spdlog::info("Line 382");
             return false;
         }
 
@@ -401,7 +406,8 @@ bool Update(RED4ext::CGameApplication* aApp)
         }
         pitchX = GetCamPitch(x, pitchRight);
         pitchY = GetCamPitch(y, pitchDown);
-
+        spdlog::info(pitchX);
+        spdlog::info(pitchY);
         _cameraPitchWorker.SetPitch(pitchX, pitchY);
     }
     // ================ LOOK AT LOOT ==============
@@ -447,6 +453,7 @@ bool Update(RED4ext::CGameApplication* aApp)
     RED4ext::ExecuteFunction(gameObj.instance, getNameFunc, &className, {});
 
     spdlog::debug(className.ToString());*/
+    return false;
 }
 
 RED4EXT_C_EXPORT void RED4EXT_CALL Query(RED4ext::PluginInfo* aInfo)

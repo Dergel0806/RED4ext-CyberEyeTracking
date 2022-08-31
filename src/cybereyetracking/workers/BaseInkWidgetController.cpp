@@ -4,7 +4,7 @@
 
 #include "BaseInkWidgetController.hpp"
 
-#define OPACITY_HIDE 0.07
+#define OPACITY_HIDE 0.03
 
 using ScriptableHandle = RED4ext::Handle<RED4ext::IScriptable>;
 
