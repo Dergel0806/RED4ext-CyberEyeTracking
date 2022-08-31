@@ -17,9 +17,9 @@
 
 #define CAMERA_PITCH_LOOK_START 0.25 // 0.338 Screen border where we start pitching camera
 
-#define CAMERA_PITCH_PARABOLA_A 0.3 // 1
-#define CAMERA_PITCH_PARABOLA_B -1
-#define CAMERA_PITCH_PARABOLA_C 0.5 // 0.25
+#define CAMERA_PITCH_PARABOLA_A 2 // 1
+#define CAMERA_PITCH_PARABOLA_B -4
+#define CAMERA_PITCH_PARABOLA_C 2 // 0.25
 
 #define CAMERA_PITCH_RESET_START 0.25 // 0.25
 
