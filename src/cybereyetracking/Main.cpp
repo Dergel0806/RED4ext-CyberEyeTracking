@@ -15,11 +15,11 @@
 #include <EyeTracker.hpp>
 #include "Utils.hpp"
 
-#define CAMERA_PITCH_LOOK_START 0.25 // 0.338 Screen border where we start pitching camera
+#define CAMERA_PITCH_LOOK_START 0.5 // 0.338 Screen border where we start pitching camera
 
-#define CAMERA_PITCH_PARABOLA_A 2 // 1
-#define CAMERA_PITCH_PARABOLA_B -2 // -1
-#define CAMERA_PITCH_PARABOLA_C 0.5 // 0.25
+#define CAMERA_PITCH_PARABOLA_A 4 // 1
+#define CAMERA_PITCH_PARABOLA_B -4 // -1
+#define CAMERA_PITCH_PARABOLA_C 1 // 0.25
 
 #define CAMERA_PITCH_RESET_START 0.25 // 0.25
 
@@ -234,6 +234,10 @@ bool Update(RED4ext::CGameApplication* aApp)
     float x = pos[0];
     float y = pos[1];
 
+    float* head_pos = _eyeTracker.GetHeadPos();
+
+    float* head_rotation = _eyeTracker.GetHeadRotation();
+
     if (x > 1)
         x = 1;
     else if (x < 0)
@@ -242,9 +246,19 @@ bool Update(RED4ext::CGameApplication* aApp)
         y = 1;
     else if (y < 0)
         y = 0;
+    spdlog::info("Gaze:");
     spdlog::info(x);
     spdlog::info(y);
 
+    spdlog::info("Head pos:");
+    spdlog::info(head_pos[0]);
+    spdlog::info(head_pos[1]);
+
+    spdlog::info("Head rotation:");
+    spdlog::info(head_rotation[0]);
+    spdlog::info(head_rotation[1]);
+    spdlog::info(head_rotation[2]);
+ 
     //// Dont work if some camera is controlled
     //RED4ext::Handle<RED4ext::IScriptable> container;
     //std::vector<RED4ext::CStackType> args;
@@ -284,55 +298,6 @@ bool Update(RED4ext::CGameApplication* aApp)
     // ================ DIALOGUE SELECT ==============
     if (!_disableDialogueSelect && _dialogWorker.SelectAtPos(y))
         return false;
-
-    // ================ CAMERA PITCH ==============
-    
-    if (!_disableCameraPitch)
-    {
-        if (!hudManagerInitialized)
-        {
-            _hudManagerWorker.Init();
-            hudManagerInitialized = true;
-        }
-        if (/*_lootingWorker.GetBoolPropertyValue("isShown") || */_hudManagerWorker.IsScanning() ||
-            _hudManagerWorker.IsHacking())
-        {
-            spdlog::info(_lootingWorker.GetBoolPropertyValue("isShown"));
-            spdlog::info(_hudManagerWorker.IsScanning());
-            spdlog::info(_hudManagerWorker.IsHacking());
-            _cameraPitchWorker.SetPitch(0, 0);
-            spdlog::info("Line 382");
-            return false;
-        }
-
-        //bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
-        bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
-        //bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
-        bool pitchDown = y >= 1 - CAMERA_PITCH_LOOK_START;
-
-        float pitchX = 0;
-        float pitchY = 0;
-
-        if (resetPitch)
-        {
-            if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START && y > CAMERA_PITCH_RESET_START &&
-                y < 1 - CAMERA_PITCH_RESET_START)
-            {
-                resetPitch = false;
-            }
-            else
-            {
-                x = prevX;
-                y = prevY;
-            }
-        }
-        pitchX = GetCamPitch(x, pitchRight);
-        pitchY = GetCamPitch(y, pitchDown);
-        spdlog::info(pitchX);
-        spdlog::info(pitchY);
-        _cameraPitchWorker.SetPitch(pitchX, pitchY);
-    }
-
     // ================ CLEAN UI ==============
     if (!_disableCleanUI)
     {
@@ -410,6 +375,55 @@ bool Update(RED4ext::CGameApplication* aApp)
         }
     }
 
+    // ================ CAMERA PITCH ==============
+    
+    if (!_disableCameraPitch)
+    {
+        if (!hudManagerInitialized)
+        {
+            _hudManagerWorker.Init();
+            hudManagerInitialized = true;
+        }
+        if (/*_lootingWorker.GetBoolPropertyValue("isShown") || */_hudManagerWorker.IsScanning() ||
+            _hudManagerWorker.IsHacking())
+        {
+            spdlog::info(_lootingWorker.GetBoolPropertyValue("isShown"));
+            spdlog::info(_hudManagerWorker.IsScanning());
+            spdlog::info(_hudManagerWorker.IsHacking());
+            _cameraPitchWorker.SetPitch(0, 0);
+            spdlog::info("Line 382");
+            return false;
+        }
+
+        //bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
+        bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
+        //bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
+        bool pitchDown = y >= 1 - CAMERA_PITCH_LOOK_START;
+
+        float pitchX = 0;
+        float pitchY = 0;
+
+        if (resetPitch)
+        {
+            if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START && y > CAMERA_PITCH_RESET_START &&
+                y < 1 - CAMERA_PITCH_RESET_START)
+            {
+                resetPitch = false;
+            }
+            else
+            {
+                x = prevX;
+                y = prevY;
+            }
+        }
+        pitchX = GetCamPitch(x, pitchRight);
+        pitchY = GetCamPitch(y, pitchDown);
+        spdlog::info(pitchX);
+        spdlog::info(pitchY);
+        _cameraPitchWorker.SetPitch(pitchX, pitchY);
+    }
+
+    
 
     // ================ LOOK AT LOOT ==============
     /* RED4ext::Handle<RED4ext::IScriptable> targetSystem;

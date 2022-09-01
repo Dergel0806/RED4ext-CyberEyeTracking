@@ -9,6 +9,9 @@ tobii_device_t* device = NULL;
 tobii_api_t* api;
 
 float pos[2];
+float head_pos[3];
+float head_rotation[3];
+
 
 CyberEyeTracking::EyeTracker::~EyeTracker()
 {
@@ -33,6 +36,21 @@ void gaze_point_callback(tobii_gaze_point_t const* gaze_point, void* /* user_dat
         pos[0] = gaze_point->position_xy[0];
         pos[1] = gaze_point->position_xy[1];
     }
+}
+
+void head_point_callback(tobii_head_pose_t const* head_pose, void* /* user_data */)
+{
+    // Check that the data is valid before using it
+    if (head_pose->position_validity == TOBII_VALIDITY_VALID)
+    {
+        head_pos[0] = head_pose->position_xyz[0];
+        head_pos[1] = head_pose->position_xyz[1];
+        head_pos[2] = head_pose->position_xyz[2];
+    }
+
+    for (int i = 0; i < 3; ++i)
+        if (head_pose->rotation_validity_xyz[i] == TOBII_VALIDITY_VALID)
+            head_rotation[i]= head_pose->rotation_xyz[i];
 }
 
 bool CyberEyeTracking::EyeTracker::Init()
@@ -62,8 +80,12 @@ bool CyberEyeTracking::EyeTracker::Init()
     // Subscribe to gaze data
     result = tobii_gaze_point_subscribe(device, gaze_point_callback, 0);
     if (result != TOBII_ERROR_NO_ERROR)
+        return false;   
+
+    result = tobii_head_pose_subscribe(device, head_point_callback, 0);
+    if (result != TOBII_ERROR_NO_ERROR)
         return false;
-    
+
     return true;
 }
 
@@ -71,6 +93,18 @@ float* CyberEyeTracking::EyeTracker::GetPos()
 {
     tobii_device_process_callbacks(device);
     return pos;
+}
+
+float* CyberEyeTracking::EyeTracker::GetHeadPos()
+{
+    tobii_device_process_callbacks(device);
+    return head_pos;
+}
+
+float* CyberEyeTracking::EyeTracker::GetHeadRotation()
+{
+    tobii_device_process_callbacks(device);
+    return head_rotation;
 }
 
 void CyberEyeTracking::EyeTracker::Finalize()

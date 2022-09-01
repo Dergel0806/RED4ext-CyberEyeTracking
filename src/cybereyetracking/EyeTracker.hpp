@@ -12,6 +12,8 @@ namespace CyberEyeTracking
 
         bool Init();
         float* GetPos();
+        float* GetHeadPos();
+        float* GetHeadRotation();
         void Finalize();
     };
 }
