@@ -136,19 +136,19 @@ float GetCamPitch(float x)
     return 2 * pow(x, 3) + x;
 }
 
-static bool resetPitch = false;
+//static bool resetPitch = false;
 static float prevX = 0;
 static float prevY = 0;
 
-void StartResetPitch(float x, float y)
-{
-    if (resetPitch)
-        return;
-
-    resetPitch = true;
-    prevX = x;
-    prevY = y;
-}
+//void StartResetPitch(float x, float y)
+//{
+//    if (resetPitch)
+//        return;
+//
+//    resetPitch = true;
+//    prevX = x;
+//    prevY = y;
+//}
 
 bool Update(RED4ext::CGameApplication* aApp)
 {
@@ -158,6 +158,9 @@ bool Update(RED4ext::CGameApplication* aApp)
     static bool initialized = false;
     static bool hudManagerInitialized = false;
     static bool trackerFound = false;
+
+    float previous_camera_X = 0;
+    float previous_camera_Y = 0;
 
     auto now = std::chrono::high_resolution_clock::now();
     auto static gameInstance = RED4ext::CGameEngine::Get()->framework->gameInstance;
@@ -325,7 +328,7 @@ bool Update(RED4ext::CGameApplication* aApp)
                 y >= 0 && y <= 0.165)  // (0-110)
             {
                 _healthBarWorker.ShowWidget();
-                StartResetPitch(x, y);
+                //StartResetPitch(x, y);
                 spdlog::info("Health Bar showing");
             }
             else
@@ -338,7 +341,7 @@ bool Update(RED4ext::CGameApplication* aApp)
                 && y >= 0.037037 && y <= 0.3055)  // (41-330)
             {
                 _minimapWorker.ShowWidget();
-                StartResetPitch(x, y);
+                //StartResetPitch(x, y);
                 spdlog::info("Map showing");
             }
             else
@@ -371,7 +374,7 @@ bool Update(RED4ext::CGameApplication* aApp)
                 && y >= 0.8703703 && y <= 1)     // (940-1080)
             {
                 _hotkeysWidgetWorker.ShowWidget();
-                StartResetPitch(x, y);
+                //StartResetPitch(x, y);
             }
             else
             {
@@ -419,10 +422,10 @@ bool Update(RED4ext::CGameApplication* aApp)
             // bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
             // bool pitchDown = y >= 1 - CAMERA_PITCH_LOOK_START;
 
-            float pitchX = 0;
-            float pitchY = 0;
+            /*float pitchX = 0;
+            float pitchY = 0;*/
 
-            if (resetPitch)
+            /*if (resetPitch)
             {
                 if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START && y > CAMERA_PITCH_RESET_START &&
                     y < 1 - CAMERA_PITCH_RESET_START)
@@ -434,18 +437,32 @@ bool Update(RED4ext::CGameApplication* aApp)
                     x = prevX;
                     y = prevY;
                 }
-            }
+            }*/
 
              //pitchX = GetCamPitch(x, pitchRight);
             // pitchY = GetCamPitch(y, pitchDown);
-            pitchX = 2 * pow(head_rotation[1], 3) + head_rotation[1];
-            pitchY = 2 * pow(head_rotation[0], 3) + head_rotation[0];
+            float head_rotation_X = round(head_rotation[1] * 1000.0) / 1000.0;
+            float head_rotation_Y = round(head_rotation[0] * 1000.0) / 1000.0;
+            float pitchX = 5 * pow(head_rotation_X, 3) + 2 * head_rotation_X;
+            float pitchY = 5 * pow(head_rotation_Y, 3) + 2 * head_rotation_Y;
             /*pitchX = GetCamPitch(head_rotation[1]);
             pitchY = GetCamPitch(head_rotation[0]);*/
             spdlog::info(pitchX);
             spdlog::info(pitchY);
+
+            if (abs(previous_camera_X - pitchX) < 0.1)
+            {
+                pitchX = previous_camera_X;
+            }
+            if (abs(previous_camera_Y - pitchY) < 0.1)
+            {
+                pitchY = previous_camera_Y;
+            }
+
             //_cameraPitchWorker.SetPitch(pitchX, pitchY);
             _cameraPitchWorker.SetPitch(pitchX, pitchY);
+            previous_camera_X = pitchX;
+            previous_camera_Y = pitchY;
         }
 
         // ================ LOOK AT LOOT ==============
