@@ -159,8 +159,8 @@ bool Update(RED4ext::CGameApplication* aApp)
     static bool hudManagerInitialized = false;
     static bool trackerFound = false;
 
-    float previous_camera_X = 0;
-    float previous_camera_Y = 0;
+    static float previous_camera_X = 0;
+    static float previous_camera_Y = 0;
 
     auto now = std::chrono::high_resolution_clock::now();
     auto static gameInstance = RED4ext::CGameEngine::Get()->framework->gameInstance;
