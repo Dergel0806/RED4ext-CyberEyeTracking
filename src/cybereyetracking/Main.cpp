@@ -133,7 +133,7 @@ void RED4EXT_CALL Unload()
 
 float GetCamPitch(float pos)
 {
-    return 2 * pow(pos, 3) + x;
+    return 2 * pow(pos, 3) + pos;
 }
 
 static bool resetPitch = false;
