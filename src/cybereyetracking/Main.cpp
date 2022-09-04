@@ -324,17 +324,18 @@ bool Update(RED4ext::CGameApplication* aApp)
         if (!_disableCleanUI)
         {
             spdlog::info("Clean UI");
+            _healthBarWorker.HideWidget();
+            _hotkeysWidgetWorker.HideWidget();
+            _minimapWorker.HideWidget();
+            _wantedBarWorker.HideWidget();
+            _questTrackerWidgetWorker.HideWidget();
+
             if (x >= 0 && x <= 0.25 && //(0-480)
                 y >= 0 && y <= 0.165)  // (0-110)
             {
                 _healthBarWorker.ShowWidget();
                 //StartResetPitch(x, y);
                 spdlog::info("Health Bar showing");
-            }
-            else
-            {
-                _healthBarWorker.HideWidget();
-                spdlog::info("Health Bar hidden");
             }
 
             if (x >= 0.848958333 && x <= 0.971875 // (1630-1866)
@@ -344,20 +345,11 @@ bool Update(RED4ext::CGameApplication* aApp)
                 //StartResetPitch(x, y);
                 spdlog::info("Map showing");
             }
-            else
-            {
-                _minimapWorker.HideWidget();
-                spdlog::info("Map hidden");
-            }
 
             if (x >= 0.8208333 && x <= 0.848958333 // (1575-1630)
                 && y >= 0.055555555 && y <= 0.25)  // (60-270)
             {
                 _wantedBarWorker.ShowWidget();
-            }
-            else
-            {
-                _wantedBarWorker.HideWidget();
             }
 
             if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
@@ -365,20 +357,12 @@ bool Update(RED4ext::CGameApplication* aApp)
             {
                 _questTrackerWidgetWorker.ShowWidget();
             }
-            else
-            {
-                _questTrackerWidgetWorker.HideWidget();
-            }
 
             if (x >= 0.03125 && x <= 0.161458333 // (60-310)
                 && y >= 0.8703703 && y <= 1)     // (940-1080)
             {
                 _hotkeysWidgetWorker.ShowWidget();
                 //StartResetPitch(x, y);
-            }
-            else
-            {
-                _hotkeysWidgetWorker.HideWidget();
             }
 
             if (x <= 0.4 || x >= 0.6 || y <= 0.4 || y >= 0.6)
@@ -444,9 +428,9 @@ bool Update(RED4ext::CGameApplication* aApp)
             float head_rotation_X = head_rotation[1];
             float head_rotation_Y = head_rotation[0];
 
-            // smoothing N1, avoid jumping of the camera
-            head_rotation_X = round(head_rotation_X * 100.0) / 100.0;
-            head_rotation_Y = round(head_rotation_Y * 100.0) / 100.0;
+            //// smoothing N1, avoid jumping of the camera
+            //head_rotation_X = round(head_rotation_X * 100.0) / 100.0;
+            //head_rotation_Y = round(head_rotation_Y * 100.0) / 100.0;
 
             float pitchX = 10 * pow(head_rotation_X, 3) + 5 * head_rotation_X;
             float pitchY = 10 * pow(head_rotation_Y, 3) + 5 * head_rotation_Y;
@@ -455,22 +439,23 @@ bool Update(RED4ext::CGameApplication* aApp)
             spdlog::info(pitchX);
             spdlog::info(pitchY);
             
+            float max_view = 2.7;
 
-            if (pitchX < -3)
+            if (pitchX < -1 * max_view)
             {
-                pitchX = -3;
+                pitchX = -1 * max_view;
             }
-            if (pitchX > 3)
+            if (pitchX > max_view)
             {
-                pitchX = 3;
+                pitchX = max_view;
             }
-            if (pitchY < -3)
+            if (pitchY < -1 * max_view)
             {
-                pitchY = -3;
+                pitchY = -1 * max_view;
             }
-            if (pitchY > 3)
+            if (pitchY > max_view)
             {
-                pitchY = 3;
+                pitchY = max_view;
             }
 
             // deadzone in the center
@@ -484,19 +469,33 @@ bool Update(RED4ext::CGameApplication* aApp)
             }
             
             // smoothing N2, avoid jumping of the camera
-            if (abs(previous_camera_X - pitchX) < 0.015)
+            if (abs(previous_camera_X - pitchX) < 0.05)
             {
                 pitchX = previous_camera_X;
             }
-            if (abs(previous_camera_Y - pitchY) < 0.015)
+            if (abs(previous_camera_Y - pitchY) < 0.05)
             {
                 pitchY = previous_camera_Y;
             }
 
-            //_cameraPitchWorker.SetPitch(pitchX, pitchY);
+            spdlog::info(pitchX);
+            spdlog::info(pitchY);
+            spdlog::info(previous_camera_X);
+            spdlog::info(previous_camera_Y);
+
+            //pitchY = (2 / 3 * pitchY) + (previous_camera_Y / 3);
+            //pitchX = (2 / 3 * pitchX) + (previous_camera_X / 3);
+
+            //spdlog::info(pitchX);
+            //spdlog::info(pitchY);
+
+            //// smoothing, avoid jumping of the camera
+            //pitchX = round(pitchX * 100.0) / 100.0;
+            //pitchY = round(pitchY * 100.0) / 100.0;
+
             _cameraPitchWorker.SetPitch(pitchX, pitchY);
-            /*previous_camera_X = pitchX;
-            previous_camera_Y = pitchY;*/
+            previous_camera_X = pitchX;
+            previous_camera_Y = pitchY;
         }
 
         // ================ LOOK AT LOOT ==============
