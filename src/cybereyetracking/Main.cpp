@@ -401,21 +401,21 @@ bool Update(RED4ext::CGameApplication* aApp)
 
         if (!_disableCameraPitch)
         {
-            if (!hudManagerInitialized)
+            /*if (!hudManagerInitialized)
             {
                 _hudManagerWorker.Init();
                 hudManagerInitialized = true;
-            }
-            if (/*_lootingWorker.GetBoolPropertyValue("isShown") || */ _hudManagerWorker.IsScanning() ||
-                _hudManagerWorker.IsHacking())
-            {
-                spdlog::info(_lootingWorker.GetBoolPropertyValue("isShown"));
-                spdlog::info(_hudManagerWorker.IsScanning());
-                spdlog::info(_hudManagerWorker.IsHacking());
-                _cameraPitchWorker.SetPitch(0, 0);
-                spdlog::info("Line 382");
-                return false;
-            }
+            }*/
+            //if (/*_lootingWorker.GetBoolPropertyValue("isShown") || */ _hudManagerWorker.IsScanning() ||
+            //    _hudManagerWorker.IsHacking())
+            //{
+            //    spdlog::info(_lootingWorker.GetBoolPropertyValue("isShown"));
+            //    spdlog::info(_hudManagerWorker.IsScanning());
+            //    spdlog::info(_hudManagerWorker.IsHacking());
+            //    _cameraPitchWorker.SetPitch(0, 0);
+            //    spdlog::info("Line 382");
+            //    return false;
+            //}
 
             // bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
             // bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
@@ -441,28 +441,62 @@ bool Update(RED4ext::CGameApplication* aApp)
 
              //pitchX = GetCamPitch(x, pitchRight);
             // pitchY = GetCamPitch(y, pitchDown);
-            float head_rotation_X = round(head_rotation[1] * 1000.0) / 1000.0;
-            float head_rotation_Y = round(head_rotation[0] * 1000.0) / 1000.0;
-            float pitchX = 5 * pow(head_rotation_X, 3) + 2 * head_rotation_X;
-            float pitchY = 5 * pow(head_rotation_Y, 3) + 2 * head_rotation_Y;
+            float head_rotation_X = head_rotation[1];
+            float head_rotation_Y = head_rotation[0];
+
+            // smoothing N1, avoid jumping of the camera
+            head_rotation_X = round(head_rotation_X * 100.0) / 100.0;
+            head_rotation_Y = round(head_rotation_Y * 100.0) / 100.0;
+
+            float pitchX = 10 * pow(head_rotation_X, 3) + 5 * head_rotation_X;
+            float pitchY = 10 * pow(head_rotation_Y, 3) + 5 * head_rotation_Y;
             /*pitchX = GetCamPitch(head_rotation[1]);
             pitchY = GetCamPitch(head_rotation[0]);*/
             spdlog::info(pitchX);
             spdlog::info(pitchY);
+            
 
-            if (abs(previous_camera_X - pitchX) < 0.1)
+            if (pitchX < -3)
+            {
+                pitchX = -3;
+            }
+            if (pitchX > 3)
+            {
+                pitchX = 3;
+            }
+            if (pitchY < -3)
+            {
+                pitchY = -3;
+            }
+            if (pitchY > 3)
+            {
+                pitchY = 3;
+            }
+
+            // deadzone in the center
+            if (pitchY < 0.1 && pitchY > -0.1)
+            {
+                pitchY = 0;
+            }
+            if (pitchX < 0.1 && pitchX > -0.1)
+            {
+                pitchX = 0;
+            }
+            
+            // smoothing N2, avoid jumping of the camera
+            if (abs(previous_camera_X - pitchX) < 0.015)
             {
                 pitchX = previous_camera_X;
             }
-            if (abs(previous_camera_Y - pitchY) < 0.1)
+            if (abs(previous_camera_Y - pitchY) < 0.015)
             {
                 pitchY = previous_camera_Y;
             }
 
             //_cameraPitchWorker.SetPitch(pitchX, pitchY);
             _cameraPitchWorker.SetPitch(pitchX, pitchY);
-            previous_camera_X = pitchX;
-            previous_camera_Y = pitchY;
+            /*previous_camera_X = pitchX;
+            previous_camera_Y = pitchY;*/
         }
 
         // ================ LOOK AT LOOT ==============
