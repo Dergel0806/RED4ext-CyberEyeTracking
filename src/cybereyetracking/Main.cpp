@@ -17,9 +17,9 @@
 
 #define CAMERA_PITCH_LOOK_START 0.5 // 0.338 Screen border where we start pitching camera
 
-#define CAMERA_PITCH_PARABOLA_A 4 // 1
-#define CAMERA_PITCH_PARABOLA_B -4 // -1
-#define CAMERA_PITCH_PARABOLA_C 1 // 0.25
+#define CAMERA_PITCH_PARABOLA_A 1 // 1
+#define CAMERA_PITCH_PARABOLA_B -1 // -1
+#define CAMERA_PITCH_PARABOLA_C 0.25 // 0.25
 
 #define CAMERA_PITCH_RESET_START 0.25 // 0.25
 
@@ -124,11 +124,16 @@ void RED4EXT_CALL Unload()
     _eyeTracker.Finalize();
 }
 
-float GetCamPitch(float pos, bool negative)
+//float GetCamPitch(float pos, bool negative)
+//{
+//    return negative ?
+//        -CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B, CAMERA_PITCH_PARABOLA_C, 1 - pos) :
+//        CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B,CAMERA_PITCH_PARABOLA_C, pos);
+//}
+
+float GetCamPitch(float pos)
 {
-    return negative ?
-        -CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B, CAMERA_PITCH_PARABOLA_C, 1 - pos) :
-        CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B,CAMERA_PITCH_PARABOLA_C, pos);
+    return 2 * pow(pos, 3) + x;
 }
 
 static bool resetPitch = false;
@@ -147,6 +152,7 @@ void StartResetPitch(float x, float y)
 
 bool Update(RED4ext::CGameApplication* aApp)
 {
+    //static bool game_loaded = false;
     static auto timeStart = std::chrono::high_resolution_clock::now();
     static auto loadCheck = std::chrono::high_resolution_clock::now();
     static bool initialized = false;
@@ -158,316 +164,334 @@ bool Update(RED4ext::CGameApplication* aApp)
     using namespace std::chrono_literals;
     auto rtti = RED4ext::CRTTISystem::Get();
     spdlog::info("==============");
-
-    if (!initialized && (now - loadCheck) < loadCheckSec * 3)
+    try
     {
-       spdlog::info("!initialized && (now - loadCheck) < loadCheckSec");
-       return false;
-    }
+        if (!initialized && (now - loadCheck) < loadCheckSec)
+        {
+            spdlog::info("!initialized && (now - loadCheck) < loadCheckSec");
+            return false;
+        }
 
-    if (!trackerFound)
-    {
-        bool initRes = _eyeTracker.Init();
-        if (initRes)
-            spdlog::info("Eye tracker found!");
+        if (!trackerFound)
+        {
+            bool initRes = _eyeTracker.Init();
+            if (initRes)
+                spdlog::info("Eye tracker found!");
 
-        trackerFound = true;
-        return false;
-    }
+            trackerFound = true;
+            return false;
+        }
 
+        if (!initialized)
+        {
+            spdlog::info("Stuff initialized!");
+            if (!_disableCleanUI)
+            {
+                _healthBarWorker.Init();
+                _minimapWorker.Init();
+                _wantedBarWorker.Init();
+                _questTrackerWidgetWorker.Init();
+                _hotkeysWidgetWorker.Init();
+                _crosshairWorker.Init();
+                _crosshairWorker2.Init();
+                _crosshairWorker3.Init();
+                _crosshairWorker4.Init();
+            }
+            if (!_disableWheelSelect)
+            {
+                _radialWheelWorker.Init();
+            }
+            if (!_disableCameraPitch)
+            {
+                _cameraPitchWorker.Init(gameInstance);
+                _lootingWorker.Init();
+            }
 
-    if (!initialized)
-    {
-        spdlog::info("Stuff initialized!");
+            _dialogWorker.Init();
+
+            inkMenuScenarioCls = rtti->GetClass("inkMenuScenario");
+            scriptGameInstanceCls = rtti->GetClass("ScriptGameInstance");
+
+            initialized = true;
+        }
+        // spdlog::info(_crosshairWorker.ObjectsCount());
+        // if (_crosshairWorker.ObjectsCount() > 0)
+        //{
+        //    game_loaded = true;
+        //}
+
+        // if (!game_loaded)
+        //{
+        //    return false;
+        //}
+
+        // RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"),
+        // &sysHandlers, {});
+
+        // auto instance = sysHandlers.Lock();
+        ////spdlog::info(instance);
+        ////spdlog::info(_dialogWorker.ObjectsCount());
+        ////if (!instance || _dialogWorker.ObjectsCount() == 0)
+        ////{
+        ////    spdlog::info("!instance || _dialogWorker.ObjectsCount() == 0");
+        ////    loadCheck = std::chrono::high_resolution_clock::now();
+        ////    _dialogWorker.Erase();
+        ////    hudManagerInitialized = false;
+        ////    return false;
+        ////}
+
+        // auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
+        // if (!gamePaused.has_value() || gamePaused.value())
+        //{
+        //    spdlog::info("!gamePaused.has_value() || gamePaused.value()");
+        //    return false;
+        //}
+
+        float* pos = _eyeTracker.GetPos();
+        float x = pos[0];
+        float y = pos[1];
+
+        float* head_pos = _eyeTracker.GetHeadPos();
+
+        float* head_rotation = _eyeTracker.GetHeadRotation();
+
+        if (x > 1)
+            x = 1;
+        else if (x < 0)
+            x = 0;
+        if (y > 1)
+            y = 1;
+        else if (y < 0)
+            y = 0;
+        spdlog::info("Gaze:");
+        spdlog::info(x);
+        spdlog::info(y);
+
+        spdlog::info("Head pos:");
+        spdlog::info(head_pos[0]);
+        spdlog::info(head_pos[1]);
+
+        spdlog::info("Head rotation:");
+        spdlog::info(head_rotation[0]);
+        spdlog::info(head_rotation[1]);
+        spdlog::info(head_rotation[2]);
+
+        //// Dont work if some camera is controlled
+        // RED4ext::Handle<RED4ext::IScriptable> container;
+        // std::vector<RED4ext::CStackType> args;
+        // spdlog::info("args.emplace_back(nullptr, &gameInstance);");
+        // args.emplace_back(nullptr, &gameInstance);
+
+        // auto f = rtti->GetClass("ScriptGameInstance")->GetFunction("GetScriptableSystemsContainer");
+        // RED4ext::ExecuteFunction(gameInstance, f, &container, args);
+        // spdlog::info("GetScriptableSystemsContainer");
+        // if (!container || !container.instance)
+        //{
+        //    spdlog::info("!container || !container.instance");
+        //    return false;
+        //}
+
+        // args.clear();
+        // RED4ext::Handle<RED4ext::IScriptable> takeOverControlSystem;
+        // auto name = RED4ext::CName::CName("TakeOverControlSystem");
+        // spdlog::info("TakeOverControlSystem");
+        // args.emplace_back(nullptr, &name);
+        // f = rtti->GetClass("gameScriptableSystemsContainer")->GetFunction("Get");
+
+        // RED4ext::ExecuteFunction(container, f, &takeOverControlSystem, args);
+        // auto isDeviceControlled = takeOverControlSystem->ExecuteFunction<bool>("IsDeviceControlled");
+        // spdlog::info(isDeviceControlled.value());
+        // if (isDeviceControlled.value())
+        //    return false;
+
+        spdlog::info("Got to selection!");
+        // ================ WHEEL SELECT ==============
+        if (!_disableWheelSelect && _radialWheelWorker.ObjectsCount() > 0)
+        {
+            float angle = CyberEyeTracking::Math::GetAngle(x, y);
+            if (_radialWheelWorker.SetAngle(angle))
+                return false;
+        }
+
+        // ================ DIALOGUE SELECT ==============
+        if (!_disableDialogueSelect && _dialogWorker.SelectAtPos(y))
+            return false;
+
+        // ================ CLEAN UI ==============
         if (!_disableCleanUI)
         {
-            _healthBarWorker.Init();
-            _minimapWorker.Init();
-            _wantedBarWorker.Init();
-            _questTrackerWidgetWorker.Init();
-            _hotkeysWidgetWorker.Init();
-            _crosshairWorker.Init();
-            _crosshairWorker2.Init();
-            _crosshairWorker3.Init();
-            _crosshairWorker4.Init();
-        }
-        if (!_disableWheelSelect)
-        {
-            _radialWheelWorker.Init();
-        }
-        if (!_disableCameraPitch)
-        {
-            _cameraPitchWorker.Init(gameInstance);
-            _lootingWorker.Init();
-        }
-
-        _dialogWorker.Init();
-
-        inkMenuScenarioCls = rtti->GetClass("inkMenuScenario");
-        scriptGameInstanceCls = rtti->GetClass("ScriptGameInstance");
-
-        initialized = true;
-    }
-
-    //RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"), &sysHandlers, {});
-
-    //auto instance = sysHandlers.Lock();
-    ////spdlog::info(instance);
-    ////spdlog::info(_dialogWorker.ObjectsCount());
-    ////if (!instance || _dialogWorker.ObjectsCount() == 0)
-    ////{
-    ////    spdlog::info("!instance || _dialogWorker.ObjectsCount() == 0");
-    ////    loadCheck = std::chrono::high_resolution_clock::now();
-    ////    _dialogWorker.Erase();
-    ////    hudManagerInitialized = false;
-    ////    return false;
-    ////}
-
-    //auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
-    //if (!gamePaused.has_value() || gamePaused.value())
-    //{
-    //    spdlog::info("!gamePaused.has_value() || gamePaused.value()");
-    //    return false;
-    //}
-
-    float* pos = _eyeTracker.GetPos();
-    float x = pos[0];
-    float y = pos[1];
-
-    float* head_pos = _eyeTracker.GetHeadPos();
-
-    float* head_rotation = _eyeTracker.GetHeadRotation();
-
-    if (x > 1)
-        x = 1;
-    else if (x < 0)
-        x = 0;
-    if (y > 1)
-        y = 1;
-    else if (y < 0)
-        y = 0;
-    spdlog::info("Gaze:");
-    spdlog::info(x);
-    spdlog::info(y);
-
-    spdlog::info("Head pos:");
-    spdlog::info(head_pos[0]);
-    spdlog::info(head_pos[1]);
-
-    spdlog::info("Head rotation:");
-    spdlog::info(head_rotation[0]);
-    spdlog::info(head_rotation[1]);
-    spdlog::info(head_rotation[2]);
- 
-    //// Dont work if some camera is controlled
-    //RED4ext::Handle<RED4ext::IScriptable> container;
-    //std::vector<RED4ext::CStackType> args;
-    //spdlog::info("args.emplace_back(nullptr, &gameInstance);");
-    //args.emplace_back(nullptr, &gameInstance);
-
-    //auto f = rtti->GetClass("ScriptGameInstance")->GetFunction("GetScriptableSystemsContainer");
-    //RED4ext::ExecuteFunction(gameInstance, f, &container, args);
-    //spdlog::info("GetScriptableSystemsContainer");
-    //if (!container || !container.instance)
-    //{
-    //    spdlog::info("!container || !container.instance");
-    //    return false;
-    //}
-
-    //args.clear();
-    //RED4ext::Handle<RED4ext::IScriptable> takeOverControlSystem;
-    //auto name = RED4ext::CName::CName("TakeOverControlSystem");
-    //spdlog::info("TakeOverControlSystem");
-    //args.emplace_back(nullptr, &name);
-    //f = rtti->GetClass("gameScriptableSystemsContainer")->GetFunction("Get");
-
-    //RED4ext::ExecuteFunction(container, f, &takeOverControlSystem, args);
-    //auto isDeviceControlled = takeOverControlSystem->ExecuteFunction<bool>("IsDeviceControlled");
-    //spdlog::info(isDeviceControlled.value());
-    //if (isDeviceControlled.value())
-    //    return false;
-    spdlog::info("Got to selection!");
-    // ================ WHEEL SELECT ==============
-    if (!_disableWheelSelect && _radialWheelWorker.ObjectsCount() > 0)
-    {
-        float angle = CyberEyeTracking::Math::GetAngle(x, y);
-        if (_radialWheelWorker.SetAngle(angle))
-            return false;
-    }
-
-    // ================ DIALOGUE SELECT ==============
-    if (!_disableDialogueSelect && _dialogWorker.SelectAtPos(y))
-        return false;
-    // ================ CLEAN UI ==============
-    if (!_disableCleanUI)
-    {
-        spdlog::info("Clean UI");
-        if (x >= 0 && x <= 0.25 && //(0-480)
-            y >= 0 && y <= 0.165)  // (0-110)
-        {
-            _healthBarWorker.ShowWidget();
-            StartResetPitch(x, y);
-            spdlog::info("Health Bar showing");
-        }
-        else
-        {
-            _healthBarWorker.HideWidget();
-            spdlog::info("Health Bar hidden");
-        }
-
-        if (x >= 0.848958333 && x <= 0.971875 // (1630-1866)
-            && y >= 0.037037 && y <= 0.3055)  // (41-330)
-        {
-            _minimapWorker.ShowWidget();
-            StartResetPitch(x, y);
-            spdlog::info("Map showing");
-        }
-        else
-        {
-            _minimapWorker.HideWidget();
-            spdlog::info("Map hidden");
-        }
-
-        if (x >= 0.8208333 && x <= 0.848958333 // (1575-1630)
-            && y >= 0.055555555 && y <= 0.25)  // (60-270)
-        {
-            _wantedBarWorker.ShowWidget();
-        }
-        else
-        {
-            _wantedBarWorker.HideWidget();
-        }
-
-        if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
-            && y >= 0.35185185 && y <= 0.5)             // (380-540)
-        {
-            _questTrackerWidgetWorker.ShowWidget();
-        }
-        else
-        {
-            _questTrackerWidgetWorker.HideWidget();
-        }
-
-        if (x >= 0.03125 && x <= 0.161458333 // (60-310)
-            && y >= 0.8703703 && y <= 1)     // (940-1080)
-        {
-            _hotkeysWidgetWorker.ShowWidget();
-            StartResetPitch(x, y);
-        }
-        else
-        {
-            _hotkeysWidgetWorker.HideWidget();
-        }
-
-        if (x <= 0.4 || x >= 0.6 || y <= 0.4 || y >= 0.6)
-        {
-            _crosshairWorker.HideWidget();
-            _crosshairWorker2.HideWidget();
-            _crosshairWorker3.HideWidget();
-            _crosshairWorker4.HideWidget();
-        }
-        else
-        {
-            _crosshairWorker.ShowWidget();
-            _crosshairWorker2.ShowWidget();
-            _crosshairWorker3.ShowWidget();
-            _crosshairWorker4.ShowWidget();
-        }
-    }
-
-    // ================ CAMERA PITCH ==============
-    
-    if (!_disableCameraPitch)
-    {
-        if (!hudManagerInitialized)
-        {
-            _hudManagerWorker.Init();
-            hudManagerInitialized = true;
-        }
-        if (/*_lootingWorker.GetBoolPropertyValue("isShown") || */_hudManagerWorker.IsScanning() ||
-            _hudManagerWorker.IsHacking())
-        {
-            spdlog::info(_lootingWorker.GetBoolPropertyValue("isShown"));
-            spdlog::info(_hudManagerWorker.IsScanning());
-            spdlog::info(_hudManagerWorker.IsHacking());
-            _cameraPitchWorker.SetPitch(0, 0);
-            spdlog::info("Line 382");
-            return false;
-        }
-
-        //bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
-        bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
-        //bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
-        bool pitchDown = y >= 1 - CAMERA_PITCH_LOOK_START;
-
-        float pitchX = 0;
-        float pitchY = 0;
-
-        if (resetPitch)
-        {
-            if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START && y > CAMERA_PITCH_RESET_START &&
-                y < 1 - CAMERA_PITCH_RESET_START)
+            spdlog::info("Clean UI");
+            if (x >= 0 && x <= 0.25 && //(0-480)
+                y >= 0 && y <= 0.165)  // (0-110)
             {
-                resetPitch = false;
+                _healthBarWorker.ShowWidget();
+                StartResetPitch(x, y);
+                spdlog::info("Health Bar showing");
             }
             else
             {
-                x = prevX;
-                y = prevY;
+                _healthBarWorker.HideWidget();
+                spdlog::info("Health Bar hidden");
+            }
+
+            if (x >= 0.848958333 && x <= 0.971875 // (1630-1866)
+                && y >= 0.037037 && y <= 0.3055)  // (41-330)
+            {
+                _minimapWorker.ShowWidget();
+                StartResetPitch(x, y);
+                spdlog::info("Map showing");
+            }
+            else
+            {
+                _minimapWorker.HideWidget();
+                spdlog::info("Map hidden");
+            }
+
+            if (x >= 0.8208333 && x <= 0.848958333 // (1575-1630)
+                && y >= 0.055555555 && y <= 0.25)  // (60-270)
+            {
+                _wantedBarWorker.ShowWidget();
+            }
+            else
+            {
+                _wantedBarWorker.HideWidget();
+            }
+
+            if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
+                && y >= 0.35185185 && y <= 0.5)             // (380-540)
+            {
+                _questTrackerWidgetWorker.ShowWidget();
+            }
+            else
+            {
+                _questTrackerWidgetWorker.HideWidget();
+            }
+
+            if (x >= 0.03125 && x <= 0.161458333 // (60-310)
+                && y >= 0.8703703 && y <= 1)     // (940-1080)
+            {
+                _hotkeysWidgetWorker.ShowWidget();
+                StartResetPitch(x, y);
+            }
+            else
+            {
+                _hotkeysWidgetWorker.HideWidget();
+            }
+
+            if (x <= 0.4 || x >= 0.6 || y <= 0.4 || y >= 0.6)
+            {
+                _crosshairWorker.HideWidget();
+                _crosshairWorker2.HideWidget();
+                _crosshairWorker3.HideWidget();
+                _crosshairWorker4.HideWidget();
+            }
+            else
+            {
+                _crosshairWorker.ShowWidget();
+                _crosshairWorker2.ShowWidget();
+                _crosshairWorker3.ShowWidget();
+                _crosshairWorker4.ShowWidget();
             }
         }
-        pitchX = GetCamPitch(x, pitchRight);
-        pitchY = GetCamPitch(y, pitchDown);
-        spdlog::info(pitchX);
-        spdlog::info(pitchY);
-        _cameraPitchWorker.SetPitch(pitchX, pitchY);
+
+        // ================ CAMERA PITCH ==============
+
+        if (!_disableCameraPitch)
+        {
+            if (!hudManagerInitialized)
+            {
+                _hudManagerWorker.Init();
+                hudManagerInitialized = true;
+            }
+            if (/*_lootingWorker.GetBoolPropertyValue("isShown") || */ _hudManagerWorker.IsScanning() ||
+                _hudManagerWorker.IsHacking())
+            {
+                spdlog::info(_lootingWorker.GetBoolPropertyValue("isShown"));
+                spdlog::info(_hudManagerWorker.IsScanning());
+                spdlog::info(_hudManagerWorker.IsHacking());
+                _cameraPitchWorker.SetPitch(0, 0);
+                spdlog::info("Line 382");
+                return false;
+            }
+
+            // bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
+            // bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
+            // bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
+            // bool pitchDown = y >= 1 - CAMERA_PITCH_LOOK_START;
+
+            float pitchX = 0;
+            float pitchY = 0;
+
+            if (resetPitch)
+            {
+                if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START && y > CAMERA_PITCH_RESET_START &&
+                    y < 1 - CAMERA_PITCH_RESET_START)
+                {
+                    resetPitch = false;
+                }
+                else
+                {
+                    x = prevX;
+                    y = prevY;
+                }
+            }
+
+             //pitchX = GetCamPitch(x, pitchRight);
+            // pitchY = GetCamPitch(y, pitchDown);
+            // spdlog::info(pitchX);
+            // spdlog::info(pitchY);
+            //_cameraPitchWorker.SetPitch(pitchX, pitchY);
+            _cameraPitchWorker.SetPitch(GetCamPitch(head_rotation[1]), GetCamPitch(head_rotation[0]));
+        }
+
+        // ================ LOOK AT LOOT ==============
+        /* RED4ext::Handle<RED4ext::IScriptable> targetSystem;
+        std::vector<RED4ext::CStackType> args;
+        args.emplace_back(nullptr, &gameInstance);
+
+        auto f = rtti->GetClass("ScriptGameInstance")->GetFunction("GetTargetingSystem");
+        RED4ext::ExecuteFunction(gameInstance, f, &targetSystem, args);
+
+        if (!targetSystem || !targetSystem.instance)
+            return;
+
+        RED4ext::Handle<RED4ext::IScriptable> playerH;
+        RED4ext::ExecuteGlobalFunction("GetPlayerObject;GameInstance", &playerH, gameInstance);
+        RED4ext::WeakHandle<RED4ext::IScriptable> playerWH{};
+        playerWH = playerH;
+
+        auto anglesCls = rtti->GetClass("EulerAngles");
+        auto fRand = anglesCls->GetFunction("Rand");
+        auto angles = anglesCls->AllocInstance();
+
+        anglesCls->GetProperty("Pitch")->SetValue<float>(angles, 0);
+        anglesCls->GetProperty("Roll")->SetValue<float>(angles, 0);
+        anglesCls->GetProperty("Yaw")->SetValue<float>(angles, 45 * x);
+
+        auto gtsCls = rtti->GetClass("gametargetingTargetingSystem");
+        auto fGetObjClosest = gtsCls->GetFunction("GetObjectClosestToCrosshair");
+
+        args.clear();
+        args.emplace_back(nullptr, &playerWH);
+        args.emplace_back(nullptr, &angles);
+        args.emplace_back(nullptr, query);
+        RED4ext::Handle<RED4ext::IScriptable> gameObj;
+        RED4ext::ExecuteFunction(targetSystem.instance, fGetObjClosest, &gameObj, args);
+
+        if (!gameObj || !gameObj.instance)
+            return;
+
+        RED4ext::CName className;
+        auto gameObjCls = rtti->GetClass("gameObject");
+        auto getNameFunc = gameObjCls->GetFunction("GetClassName");
+        RED4ext::ExecuteFunction(gameObj.instance, getNameFunc, &className, {});
+
+        spdlog::debug(className.ToString());*/
     }
-
-    
-
-    // ================ LOOK AT LOOT ==============
-    /* RED4ext::Handle<RED4ext::IScriptable> targetSystem;
-    std::vector<RED4ext::CStackType> args;
-    args.emplace_back(nullptr, &gameInstance);
-
-    auto f = rtti->GetClass("ScriptGameInstance")->GetFunction("GetTargetingSystem");
-    RED4ext::ExecuteFunction(gameInstance, f, &targetSystem, args);
-
-    if (!targetSystem || !targetSystem.instance)
-        return;
-
-    RED4ext::Handle<RED4ext::IScriptable> playerH;
-    RED4ext::ExecuteGlobalFunction("GetPlayerObject;GameInstance", &playerH, gameInstance);
-    RED4ext::WeakHandle<RED4ext::IScriptable> playerWH{};
-    playerWH = playerH;
-
-    auto anglesCls = rtti->GetClass("EulerAngles");
-    auto fRand = anglesCls->GetFunction("Rand");
-    auto angles = anglesCls->AllocInstance();
-
-    anglesCls->GetProperty("Pitch")->SetValue<float>(angles, 0);
-    anglesCls->GetProperty("Roll")->SetValue<float>(angles, 0);
-    anglesCls->GetProperty("Yaw")->SetValue<float>(angles, 45 * x);
-
-    auto gtsCls = rtti->GetClass("gametargetingTargetingSystem");
-    auto fGetObjClosest = gtsCls->GetFunction("GetObjectClosestToCrosshair");
-
-    args.clear();
-    args.emplace_back(nullptr, &playerWH);
-    args.emplace_back(nullptr, &angles);
-    args.emplace_back(nullptr, query);
-    RED4ext::Handle<RED4ext::IScriptable> gameObj;
-    RED4ext::ExecuteFunction(targetSystem.instance, fGetObjClosest, &gameObj, args);
-
-    if (!gameObj || !gameObj.instance)
-        return;
-
-    RED4ext::CName className;
-    auto gameObjCls = rtti->GetClass("gameObject");
-    auto getNameFunc = gameObjCls->GetFunction("GetClassName");
-    RED4ext::ExecuteFunction(gameObj.instance, getNameFunc, &className, {});
-
-    spdlog::debug(className.ToString());*/
+    catch (const std::exception& e)
+    {
+        spdlog::info(e.what());
+    }
     return false;
 }
 
