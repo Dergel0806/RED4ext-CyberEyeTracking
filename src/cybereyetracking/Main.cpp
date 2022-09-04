@@ -131,9 +131,9 @@ void RED4EXT_CALL Unload()
 //        CyberEyeTracking::Math::GetParametrizedParabola(CAMERA_PITCH_PARABOLA_A, CAMERA_PITCH_PARABOLA_B,CAMERA_PITCH_PARABOLA_C, pos);
 //}
 
-float GetCamPitch(float pos)
+float GetCamPitch(float x)
 {
-    return 2 * pow(pos, 3) + pos;
+    return 2 * pow(x, 3) + x;
 }
 
 static bool resetPitch = false;
@@ -438,10 +438,14 @@ bool Update(RED4ext::CGameApplication* aApp)
 
              //pitchX = GetCamPitch(x, pitchRight);
             // pitchY = GetCamPitch(y, pitchDown);
-            // spdlog::info(pitchX);
-            // spdlog::info(pitchY);
+            pitchX = 2 * pow(head_rotation[1], 3) + head_rotation[1];
+            pitchY = 2 * pow(head_rotation[0], 3) + head_rotation[0];
+            /*pitchX = GetCamPitch(head_rotation[1]);
+            pitchY = GetCamPitch(head_rotation[0]);*/
+            spdlog::info(pitchX);
+            spdlog::info(pitchY);
             //_cameraPitchWorker.SetPitch(pitchX, pitchY);
-            _cameraPitchWorker.SetPitch(GetCamPitch(head_rotation[1]), GetCamPitch(head_rotation[0]));
+            _cameraPitchWorker.SetPitch(pitchX, pitchY);
         }
 
         // ================ LOOK AT LOOT ==============
