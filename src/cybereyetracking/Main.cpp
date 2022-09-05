@@ -327,7 +327,6 @@ bool Update(RED4ext::CGameApplication* aApp)
             _minimapWorker.HideWidget();
             _healthBarWorker.HideWidget();
             _hotkeysWidgetWorker.HideWidget();
-            _minimapWorker.HideWidget();
             _wantedBarWorker.HideWidget();
             _questTrackerWidgetWorker.HideWidget();
 
@@ -458,12 +457,14 @@ bool Update(RED4ext::CGameApplication* aApp)
                 pitchY = max_view;
             }
 
+            float center_deadzone = 0.2;
+
             // deadzone in the center
-            if (pitchY < 0.1 && pitchY > -0.1)
+            if (pitchY < center_deadzone && pitchY > -1 * center_deadzone)
             {
                 pitchY = 0;
             }
-            if (pitchX < 0.1 && pitchX > -0.1)
+            if (pitchX < center_deadzone && pitchX > -1 * center_deadzone)
             {
                 pitchX = 0;
             }
