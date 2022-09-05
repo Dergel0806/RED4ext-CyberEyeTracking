@@ -324,6 +324,7 @@ bool Update(RED4ext::CGameApplication* aApp)
         if (!_disableCleanUI)
         {
             spdlog::info("Clean UI");
+            _minimapWorker.HideWidget();
             _healthBarWorker.HideWidget();
             _hotkeysWidgetWorker.HideWidget();
             _minimapWorker.HideWidget();
@@ -448,9 +449,9 @@ bool Update(RED4ext::CGameApplication* aApp)
             {
                 pitchX = max_view;
             }
-            if (pitchY < -1 * max_view)
+            if (pitchY < -2.3)
             {
-                pitchY = -1 * max_view;
+                pitchY = -2.3;
             }
             if (pitchY > max_view)
             {
@@ -478,8 +479,8 @@ bool Update(RED4ext::CGameApplication* aApp)
             }
 
 
-            pitchY = (2.0 / 3.0 * pitchY) + (previous_camera_Y / 3.0);
-            pitchX = (2.0 / 3.0 * pitchX) + (previous_camera_X / 3.0);
+            pitchY = (3.0 / 4.0 * previous_camera_Y) + (pitchY / 4.0);
+            pitchX = (3.0 / 4.0 * previous_camera_X) + (pitchX / 4.0);
 
             //spdlog::info(pitchX);
             //spdlog::info(pitchY);
