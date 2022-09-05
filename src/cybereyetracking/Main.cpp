@@ -217,22 +217,13 @@ bool Update(RED4ext::CGameApplication* aApp)
 
             initialized = true;
         }
-        // spdlog::info(_crosshairWorker.ObjectsCount());
-        // if (_crosshairWorker.ObjectsCount() > 0)
-        //{
-        //    game_loaded = true;
-        //}
-
-        // if (!game_loaded)
-        //{
-        //    return false;
-        //}
+ 
 
         // RED4ext::ExecuteFunction(gameInstance, inkMenuScenarioCls->GetFunction("GetSystemRequestsHandler"),
         // &sysHandlers, {});
 
-        // auto instance = sysHandlers.Lock();
-        ////spdlog::info(instance);
+        //auto instance = sysHandlers.Lock();
+        //spdlog::info(instance);
         ////spdlog::info(_dialogWorker.ObjectsCount());
         ////if (!instance || _dialogWorker.ObjectsCount() == 0)
         ////{
@@ -243,12 +234,12 @@ bool Update(RED4ext::CGameApplication* aApp)
         ////    return false;
         ////}
 
-        // auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
-        // if (!gamePaused.has_value() || gamePaused.value())
-        //{
-        //    spdlog::info("!gamePaused.has_value() || gamePaused.value()");
-        //    return false;
-        //}
+        /*auto gamePaused = instance->ExecuteFunction<bool>("IsGamePaused", nullptr);
+        if (!gamePaused.has_value() || gamePaused.value())
+        {
+            spdlog::info("!gamePaused.has_value() || gamePaused.value()");
+            return false;
+        }*/
 
         float* pos = _eyeTracker.GetPos();
         float x = pos[0];
@@ -266,18 +257,18 @@ bool Update(RED4ext::CGameApplication* aApp)
             y = 1;
         else if (y < 0)
             y = 0;
-        spdlog::info("Gaze:");
-        spdlog::info(x);
-        spdlog::info(y);
+        //spdlog::info("Gaze:");
+        //spdlog::info(x);
+        //spdlog::info(y);
 
-        spdlog::info("Head pos:");
-        spdlog::info(head_pos[0]);
-        spdlog::info(head_pos[1]);
+        //spdlog::info("Head pos:");
+        //spdlog::info(head_pos[0]);
+        //spdlog::info(head_pos[1]);
 
-        spdlog::info("Head rotation:");
-        spdlog::info(head_rotation[0]);
-        spdlog::info(head_rotation[1]);
-        spdlog::info(head_rotation[2]);
+        //spdlog::info("Head rotation:");
+        //spdlog::info(head_rotation[0]);
+        //spdlog::info(head_rotation[1]);
+        //spdlog::info(head_rotation[2]);
 
         //// Dont work if some camera is controlled
         // RED4ext::Handle<RED4ext::IScriptable> container;
@@ -307,7 +298,7 @@ bool Update(RED4ext::CGameApplication* aApp)
         // if (isDeviceControlled.value())
         //    return false;
 
-        spdlog::info("Got to selection!");
+        //spdlog::info("Got to selection!");
         // ================ WHEEL SELECT ==============
         if (!_disableWheelSelect && _radialWheelWorker.ObjectsCount() > 0)
         {
@@ -323,17 +314,16 @@ bool Update(RED4ext::CGameApplication* aApp)
         // ================ CLEAN UI ==============
         if (!_disableCleanUI)
         {
-            spdlog::info("Clean UI");
             _minimapWorker.HideWidget();
-            _healthBarWorker.HideWidget();
-            _hotkeysWidgetWorker.HideWidget();
-            _wantedBarWorker.HideWidget();
-            _questTrackerWidgetWorker.HideWidget();
-
             _crosshairWorker.HideWidget();
             _crosshairWorker2.HideWidget();
             _crosshairWorker3.HideWidget();
             _crosshairWorker4.HideWidget();
+
+            //_healthBarWorker.HideWidget();
+            _hotkeysWidgetWorker.HideWidget();
+            //_wantedBarWorker.HideWidget();
+            //_questTrackerWidgetWorker.HideWidget();
 
             if (x >= 0 && x <= 0.25 && //(0-480)
                 y >= 0 && y <= 0.165)  // (0-110)
@@ -355,18 +345,21 @@ bool Update(RED4ext::CGameApplication* aApp)
                 && y >= 0.055555555 && y <= 0.25)  // (60-270)
             {
                 _wantedBarWorker.ShowWidget();
+                spdlog::info("Wanted showing");
             }
 
             if (x >= 0.786458333 && x <= 0.9442708333333333 // (1510-1813)
                 && y >= 0.35185185 && y <= 0.5)             // (380-540)
             {
                 _questTrackerWidgetWorker.ShowWidget();
+                spdlog::info("Quest tracker showing");
             }
 
             if (x >= 0.03125 && x <= 0.161458333 // (60-310)
                 && y >= 0.8703703 && y <= 1)     // (940-1080)
             {
                 _hotkeysWidgetWorker.ShowWidget();
+                spdlog::info("Hotkeys showing");
                 //StartResetPitch(x, y);
             }
 
@@ -384,59 +377,30 @@ bool Update(RED4ext::CGameApplication* aApp)
 
         if (!_disableCameraPitch)
         {
-            /*if (!hudManagerInitialized)
+            if (!hudManagerInitialized)
             {
                 _hudManagerWorker.Init();
                 hudManagerInitialized = true;
-            }*/
-            //if (/*_lootingWorker.GetBoolPropertyValue("isShown") || */ _hudManagerWorker.IsScanning() ||
-            //    _hudManagerWorker.IsHacking())
-            //{
-            //    spdlog::info(_lootingWorker.GetBoolPropertyValue("isShown"));
-            //    spdlog::info(_hudManagerWorker.IsScanning());
-            //    spdlog::info(_hudManagerWorker.IsHacking());
-            //    _cameraPitchWorker.SetPitch(0, 0);
-            //    spdlog::info("Line 382");
-            //    return false;
-            //}
-
-            // bool pitchLeft = x <= CAMERA_PITCH_LOOK_START;
-            // bool pitchRight = x >= 1 - CAMERA_PITCH_LOOK_START;
-            // bool pitchUp = y <= CAMERA_PITCH_LOOK_START;
-            // bool pitchDown = y >= 1 - CAMERA_PITCH_LOOK_START;
-
-            /*float pitchX = 0;
-            float pitchY = 0;*/
-
-            /*if (resetPitch)
+            }
+            if (/*_lootingWorker.GetBoolPropertyValue("isShown") || */ _hudManagerWorker.IsScanning() ||
+                _hudManagerWorker.IsHacking())
             {
-                if (x > CAMERA_PITCH_RESET_START && x < 1 - CAMERA_PITCH_RESET_START && y > CAMERA_PITCH_RESET_START &&
-                    y < 1 - CAMERA_PITCH_RESET_START)
-                {
-                    resetPitch = false;
-                }
-                else
-                {
-                    x = prevX;
-                    y = prevY;
-                }
-            }*/
+                spdlog::info(_lootingWorker.GetBoolPropertyValue("isShown"));
+                spdlog::info(_hudManagerWorker.IsScanning());
+                spdlog::info(_hudManagerWorker.IsHacking());
+                _cameraPitchWorker.SetPitch(0, 0);
+                spdlog::info("Line 382");
+                return false;
+            }
 
-             //pitchX = GetCamPitch(x, pitchRight);
-            // pitchY = GetCamPitch(y, pitchDown);
+            
             float head_rotation_X = head_rotation[1];
             float head_rotation_Y = head_rotation[0];
 
-            //// smoothing N1, avoid jumping of the camera
-            //head_rotation_X = round(head_rotation_X * 100.0) / 100.0;
-            //head_rotation_Y = round(head_rotation_Y * 100.0) / 100.0;
-
             float pitchX = 10 * pow(head_rotation_X, 3) + 5 * head_rotation_X;
             float pitchY = 10 * pow(head_rotation_Y, 3) + 5 * head_rotation_Y;
-            /*pitchX = GetCamPitch(head_rotation[1]);
-            pitchY = GetCamPitch(head_rotation[0]);*/
-            spdlog::info(pitchX);
-            spdlog::info(pitchY);
+            //spdlog::info(pitchX);
+            //spdlog::info(pitchY);
             
             float max_view = 2.7;
 
@@ -470,11 +434,11 @@ bool Update(RED4ext::CGameApplication* aApp)
             }
             
             // smoothing N2, avoid jumping of the camera
-            if (abs(previous_camera_X - pitchX) < 0.1)
+            if (abs(previous_camera_X - pitchX) < 0.15)
             {
                 pitchX = previous_camera_X;
             }
-            if (abs(previous_camera_Y - pitchY) < 0.1)
+            if (abs(previous_camera_Y - pitchY) < 0.15)
             {
                 pitchY = previous_camera_Y;
             }
@@ -482,13 +446,6 @@ bool Update(RED4ext::CGameApplication* aApp)
 
             pitchY = (3.0 / 4.0 * previous_camera_Y) + (pitchY / 4.0);
             pitchX = (3.0 / 4.0 * previous_camera_X) + (pitchX / 4.0);
-
-            //spdlog::info(pitchX);
-            //spdlog::info(pitchY);
-
-            //// smoothing, avoid jumping of the camera
-            //pitchX = round(pitchX * 100.0) / 100.0;
-            //pitchY = round(pitchY * 100.0) / 100.0;
 
             _cameraPitchWorker.SetPitch(pitchX, pitchY);
             previous_camera_X = pitchX;

@@ -237,6 +237,12 @@ std::set<RED4ext::IScriptable*> CyberEyeTracking::Workers::BaseInkWidgetControll
 
 void CyberEyeTracking::Workers::BaseInkWidgetController::SetRootOpacity(float value)
 {
+    //spdlog::debug("GetScriptObjects");
+    //for (auto& scriptable : GetScriptObjects())
+    //{
+    //    spdlog::debug("Got some");
+    //}
+    //spdlog::debug("END GetScriptObjects");
     for (auto& scriptable : GetScriptObjects())
     {
         if (*(uint64_t*)scriptable == 0)
@@ -265,6 +271,10 @@ void CyberEyeTracking::Workers::BaseInkWidgetController::SetRootOpacity(float va
             {
                 spdlog::debug("couldn't lock root inkWidget whandle");
             }
+        }
+        else
+        {
+            spdlog::debug("pwh is false!");
         }
     }
 }
