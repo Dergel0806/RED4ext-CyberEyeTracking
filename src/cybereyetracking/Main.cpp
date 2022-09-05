@@ -330,6 +330,11 @@ bool Update(RED4ext::CGameApplication* aApp)
             _wantedBarWorker.HideWidget();
             _questTrackerWidgetWorker.HideWidget();
 
+            _crosshairWorker.HideWidget();
+            _crosshairWorker2.HideWidget();
+            _crosshairWorker3.HideWidget();
+            _crosshairWorker4.HideWidget();
+
             if (x >= 0 && x <= 0.25 && //(0-480)
                 y >= 0 && y <= 0.165)  // (0-110)
             {
@@ -365,20 +370,14 @@ bool Update(RED4ext::CGameApplication* aApp)
                 //StartResetPitch(x, y);
             }
 
-            if (x <= 0.4 || x >= 0.6 || y <= 0.4 || y >= 0.6)
-            {
-                _crosshairWorker.HideWidget();
-                _crosshairWorker2.HideWidget();
-                _crosshairWorker3.HideWidget();
-                _crosshairWorker4.HideWidget();
-            }
-            else
+            if (x > 0.4 && x < 0.6 && y > 0.4 && y < 0.6)
             {
                 _crosshairWorker.ShowWidget();
                 _crosshairWorker2.ShowWidget();
                 _crosshairWorker3.ShowWidget();
                 _crosshairWorker4.ShowWidget();
             }
+
         }
 
         // ================ CAMERA PITCH ==============
@@ -469,22 +468,18 @@ bool Update(RED4ext::CGameApplication* aApp)
             }
             
             // smoothing N2, avoid jumping of the camera
-            if (abs(previous_camera_X - pitchX) < 0.05)
+            if (abs(previous_camera_X - pitchX) < 0.1)
             {
                 pitchX = previous_camera_X;
             }
-            if (abs(previous_camera_Y - pitchY) < 0.05)
+            if (abs(previous_camera_Y - pitchY) < 0.1)
             {
                 pitchY = previous_camera_Y;
             }
 
-            spdlog::info(pitchX);
-            spdlog::info(pitchY);
-            spdlog::info(previous_camera_X);
-            spdlog::info(previous_camera_Y);
 
-            //pitchY = (2 / 3 * pitchY) + (previous_camera_Y / 3);
-            //pitchX = (2 / 3 * pitchX) + (previous_camera_X / 3);
+            pitchY = (2.0 / 3.0 * pitchY) + (previous_camera_Y / 3.0);
+            pitchX = (2.0 / 3.0 * pitchX) + (previous_camera_X / 3.0);
 
             //spdlog::info(pitchX);
             //spdlog::info(pitchY);
